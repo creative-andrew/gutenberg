@@ -272,6 +272,7 @@ function Navigation( {
 
 	useEffect( () => {
 		if (
+			ref ||
 			! hasResolvedNavigationMenus ||
 			isConvertingClassicMenu ||
 			fallbackNavigationMenus?.length > 0
