@@ -19,6 +19,7 @@
 -   `BorderBoxControl`: migrate tests to TypeScript, remove act() call ([47755](https://github.com/WordPress/gutenberg/pull/47755)).
 -   `Toolbar`: Convert to TypeScript ([#47087](https://github.com/WordPress/gutenberg/pull/47087)).
 -   `MenuItemsChoice`: Convert to TypeScript ([#47180](https://github.com/WordPress/gutenberg/pull/47180)).
+-   `Autocomplete`: Convert to TypeScript ([#47751](https://github.com/WordPress/gutenberg/pull/47751)).
 
 ## 23.3.0 (2023-02-01)
 
