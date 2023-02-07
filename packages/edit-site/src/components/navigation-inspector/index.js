@@ -206,10 +206,7 @@ export default function NavigationInspector( { onSelect } ) {
 					onChange={ onChange }
 					onInput={ onInput }
 				>
-					<NavigationMenu
-						innerBlocks={ publishedInnerBlocks }
-						onSelect={ onSelect }
-					/>
+					<NavigationMenu onSelect={ onSelect } />
 				</BlockEditorProvider>
 			) }
 

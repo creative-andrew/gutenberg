@@ -13,23 +13,27 @@ import { useHistory } from '../routes';
 
 export default function SidebarNavigationScreenNavigationMenus() {
 	const history = useHistory();
-	const onSelect = useCallback(
-		( selectedBlock ) => {
-			const { attributes } = selectedBlock;
-			if (
-				attributes.kind === 'post-type' &&
-				attributes.id &&
-				attributes.type &&
-				history
-			) {
-				history.push( {
-					postType: attributes.type,
-					postId: attributes.id,
-				} );
-			}
-		},
-		[ history ]
-	);
+	const onSelect = useCallback( ( selectedBlock ) => {
+		const { attributes, name } = selectedBlock;
+		if (
+			attributes.kind === 'post-type' &&
+			attributes.id &&
+			attributes.type &&
+			history
+		) {
+			history.push( {
+				postType: attributes.type,
+				postId: attributes.id,
+			} );
+			return;
+		}
+		if ( name === 'core/page-list-item' && attributes.id && history ) {
+			history.push( {
+				postType: 'page',
+				postId: attributes.id,
+			} );
+		}
+	}, [] );
 	return (
 		<SidebarNavigationScreen
 			path="/navigation"

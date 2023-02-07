@@ -4,9 +4,11 @@
 import {
 	experiments as blockEditorExperiments,
 	store as blockEditorStore,
+	BlockList,
+	BlockTools,
 } from '@wordpress/block-editor';
 import { useEffect } from '@wordpress/element';
-import { useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch } from '@wordpress/data';
 
 /**
  * Internal dependencies
@@ -34,9 +36,18 @@ const ALLOWED_BLOCKS = {
 		'core/navigation-link',
 		'core/navigation-submenu',
 	],
+	'core/page-list': [ 'core/page-list-item' ],
 };
 
-export default function NavigationMenu( { innerBlocks, onSelect } ) {
+export default function NavigationMenu( { onSelect } ) {
+	const { clientIdsTree, innerBlocks } = useSelect( ( select ) => {
+		const { __unstableGetClientIdsTree, getBlocks } =
+			select( blockEditorStore );
+		return {
+			clientIdsTree: __unstableGetClientIdsTree(),
+			innerBlocks: getBlocks(),
+		};
+	} );
 	const { updateBlockListSettings } = useDispatch( blockEditorStore );
 
 	const { OffCanvasEditor } = unlock( blockEditorExperiments );
@@ -56,5 +67,16 @@ export default function NavigationMenu( { innerBlocks, onSelect } ) {
 		} );
 	}, [ updateBlockListSettings, innerBlocks ] );
 
-	return <OffCanvasEditor blocks={ innerBlocks } onSelect={ onSelect } />;
+	// The hidden block is needed because it makes block edit side effects trigger.
+	// For example a navigation page list load its items has an effect on edit to load its items.
+	return (
+		<>
+			<OffCanvasEditor blocks={ clientIdsTree } onSelect={ onSelect } />
+			<div style={ { display: 'none' } }>
+				<BlockTools>
+					<BlockList />
+				</BlockTools>
+			</div>
+		</>
+	);
 }
