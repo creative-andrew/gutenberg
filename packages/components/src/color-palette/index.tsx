@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import type { ForwardedRef, RefObject } from 'react';
+import type { ForwardedRef } from 'react';
 import { colord, extend } from 'colord';
 import namesPlugin from 'colord/plugins/names';
 import a11yPlugin from 'colord/plugins/a11y';
@@ -33,6 +33,12 @@ import type {
 } from './types';
 import type { WordPressComponentProps } from '../ui/context';
 import type { DropdownProps } from '../dropdown/types';
+import {
+	extractColorNameFromCurrentValue,
+	isMultiplePaletteArray,
+	normalizeColorValue,
+	showTransparentBackground,
+} from './utils';
 
 extend( [ namesPlugin, a11yPlugin ] );
 
@@ -101,6 +107,7 @@ function MultiplePalettes( {
 	onChange,
 	value,
 	actions,
+	headingLevel,
 }: MultiplePalettesProps ) {
 	if ( colors.length === 0 ) {
 		return null;
@@ -111,7 +118,9 @@ function MultiplePalettes( {
 			{ colors.map( ( { name, colors: colorPalette }, index ) => {
 				return (
 					<VStack spacing={ 2 } key={ index }>
-						<ColorHeading>{ name }</ColorHeading>
+						<ColorHeading level={ headingLevel }>
+							{ name }
+						</ColorHeading>
 						<SinglePalette
 							clearColor={ clearColor }
 							colors={ colorPalette }
@@ -164,77 +173,6 @@ export function CustomColorPickerDropdown( {
 	);
 }
 
-export const extractColorNameFromCurrentValue = (
-	currentValue?: ColorPaletteProps[ 'value' ],
-	colors: ColorPaletteProps[ 'colors' ] = [],
-	showMultiplePalettes: boolean = false
-) => {
-	if ( ! currentValue ) {
-		return '';
-	}
-
-	const currentValueIsCssVariable = /^var\(/.test( currentValue );
-	const normalizedCurrentValue = currentValueIsCssVariable
-		? currentValue
-		: colord( currentValue ).toHex();
-
-	// Normalize format of `colors` to simplify the following loop
-	type normalizedPaletteObject = { colors: ColorObject[] };
-	const colorPalettes: normalizedPaletteObject[] = showMultiplePalettes
-		? ( colors as PaletteObject[] )
-		: [ { colors: colors as ColorObject[] } ];
-	for ( const { colors: paletteColors } of colorPalettes ) {
-		for ( const { name: colorName, color: colorValue } of paletteColors ) {
-			const normalizedColorValue = currentValueIsCssVariable
-				? colorValue
-				: colord( colorValue ).toHex();
-
-			if ( normalizedCurrentValue === normalizedColorValue ) {
-				return colorName;
-			}
-		}
-	}
-
-	// translators: shown when the user has picked a custom color (i.e not in the palette of colors).
-	return __( 'Custom' );
-};
-
-export const showTransparentBackground = ( currentValue?: string ) => {
-	if ( typeof currentValue === 'undefined' ) {
-		return true;
-	}
-	return colord( currentValue ).alpha() === 0;
-};
-
-const areColorsMultiplePalette = (
-	colors: NonNullable< ColorPaletteProps[ 'colors' ] >
-): colors is PaletteObject[] => {
-	return colors.every( ( colorObj ) =>
-		Array.isArray( ( colorObj as PaletteObject ).colors )
-	);
-};
-
-const normalizeColorValue = (
-	value: string | undefined,
-	ref: RefObject< HTMLElement > | null
-) => {
-	const currentValueIsCssVariable = /^var\(/.test( value ?? '' );
-
-	if ( ! currentValueIsCssVariable || ! ref?.current ) {
-		return value;
-	}
-
-	const { ownerDocument } = ref.current;
-	const { defaultView } = ownerDocument;
-	const computedBackgroundColor = defaultView?.getComputedStyle(
-		ref.current
-	).backgroundColor;
-
-	return computedBackgroundColor
-		? colord( computedBackgroundColor ).toHex()
-		: value;
-};
-
 function UnforwardedColorPalette(
 	props: WordPressComponentProps< ColorPaletteProps, 'div' >,
 	forwardedRef: ForwardedRef< any >
@@ -248,13 +186,13 @@ function UnforwardedColorPalette(
 		onChange,
 		value,
 		__experimentalIsRenderedInSidebar = false,
+		headingLevel = 2,
 		...otherProps
 	} = props;
+
 	const clearColor = useCallback( () => onChange( undefined ), [ onChange ] );
 
-	const hasMultipleColorOrigins =
-		colors.length > 0 &&
-		( colors as PaletteObject[] )[ 0 ].colors !== undefined;
+	const hasMultipleColorOrigins = isMultiplePaletteArray( colors );
 	const buttonLabelName = useMemo(
 		() =>
 			extractColorNameFromCurrentValue(
@@ -264,18 +202,6 @@ function UnforwardedColorPalette(
 			),
 		[ value, colors, hasMultipleColorOrigins ]
 	);
-
-	// Make sure that the `colors` array has a valid format.
-	if (
-		colors.length > 0 &&
-		hasMultipleColorOrigins !== areColorsMultiplePalette( colors )
-	) {
-		// eslint-disable-next-line no-console
-		console.warn(
-			'wp.components.ColorPalette: please specify a valid format for the `colors` prop. '
-		);
-		return null;
-	}
 
 	const renderCustomColorPicker = () => (
 		<DropdownContentWrapper paddingSize="none">
@@ -314,6 +240,7 @@ function UnforwardedColorPalette(
 				{ __( 'Clear' ) }
 			</CircularOptionPicker.ButtonAction>
 		),
+		headingLevel,
 	};
 
 	return (
