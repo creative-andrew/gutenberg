@@ -199,11 +199,8 @@ async function runTestSuite( testSuite, performanceTestDirectory, runKey ) {
 		performanceTestDirectory,
 		`packages/e2e-tests/specs/performance/${ testSuite }.test.results.json`
 	);
-	fs.mkdirSync( '/home/runner/__test-results', { recursive: true } );
-	fs.copyFileSync(
-		resultsFile,
-		`/home/runner/__test-results/${ runKey }.results.json`
-	);
+	fs.mkdirSync( './__test-results', { recursive: true } );
+	fs.copyFileSync( resultsFile, `./__test-results/${ runKey }.results.json` );
 	const rawResults = await readJSONFile(
 		path.join(
 			performanceTestDirectory,
