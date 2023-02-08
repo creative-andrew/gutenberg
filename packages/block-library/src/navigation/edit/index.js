@@ -148,34 +148,6 @@ function Navigation( {
 		createNavigationMenu( '' );
 	};
 
-	useEffect( () => {
-		hideNavigationMenuStatusNotice();
-
-		if ( isCreatingNavigationMenu ) {
-			speak( __( `Creating Navigation Menu.` ) );
-		}
-
-		if ( createNavigationMenuIsSuccess ) {
-			handleUpdateMenu( createNavigationMenuPost.id, {
-				focusNavigationBlock: true,
-			} );
-
-			showNavigationMenuStatusNotice(
-				__( `Navigation Menu successfully created.` )
-			);
-		}
-
-		if ( createNavigationMenuIsError ) {
-			showNavigationMenuStatusNotice(
-				__( 'Failed to create Navigation Menu.' )
-			);
-		}
-	}, [
-		createNavigationMenuStatus,
-		createNavigationMenuError,
-		createNavigationMenuPost,
-	] );
-
 	const {
 		hasUncontrolledInnerBlocks,
 		uncontrolledInnerBlocks,
@@ -236,6 +208,40 @@ function Navigation( {
 				} ),
 		[ navigationMenus ]
 	);
+
+	// This useEffect adds snackbar and speak status notices when menus are created.
+	// If there are no fallback navigation menus then we don't show these messages,
+	// because this means that we are creating the first, fallback navigation menu.
+	useEffect( () => {
+		hideNavigationMenuStatusNotice();
+
+		if ( fallbackNavigationMenus && isCreatingNavigationMenu ) {
+			speak( __( `Creating Navigation Menu.` ) );
+		}
+
+		if ( createNavigationMenuIsSuccess ) {
+			handleUpdateMenu( createNavigationMenuPost.id, {
+				focusNavigationBlock: true,
+			} );
+
+			if ( fallbackNavigationMenus ) {
+				showNavigationMenuStatusNotice(
+					__( `Navigation Menu successfully created.` )
+				);
+			}
+		}
+
+		if ( createNavigationMenuIsError ) {
+			showNavigationMenuStatusNotice(
+				__( 'Failed to create Navigation Menu.' )
+			);
+		}
+	}, [
+		createNavigationMenuStatus,
+		createNavigationMenuError,
+		createNavigationMenuPost,
+		fallbackNavigationMenus,
+	] );
 
 	// Attempt to retrieve and prioritize any existing navigation menu unless:
 	// - the are uncontrolled inner blocks already present in the block.
