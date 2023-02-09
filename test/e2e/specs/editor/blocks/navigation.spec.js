@@ -37,6 +37,7 @@ test.describe(
 
 		test( 'default to a list of pages if there are no menus', async ( {
 			editor,
+			navBlockUtils,
 		} ) => {
 			await editor.insertBlock( { name: 'core/navigation' } );
 
@@ -55,10 +56,10 @@ test.describe(
 			// Check the markup of the block is correct.
 			await editor.publishPost();
 			const content = await editor.getEditedPostContent();
+			const navigationMenus = await navBlockUtils.getNavigationMenus();
+			const latestNavigationMenu = navigationMenus[ 0 ];
 			expect( content ).toBe(
-				`<!-- wp:navigation -->
-<!-- wp:page-list /-->
-<!-- /wp:navigation -->`
+				`<!-- wp:navigation {"ref":${ latestNavigationMenu.id }} /-->`
 			);
 		} );
 
@@ -125,6 +126,22 @@ class NavigationBlockUtils {
 				...menuData,
 			},
 		} );
+	}
+
+	/**
+	 * Get latest navigation menus
+	 *
+	 * @return {string} Menu content.
+	 */
+	async getNavigationMenus() {
+		const navigationMenus = this.requestUtils.rest( {
+			method: 'GET',
+			path: `/wp/v2/navigation/`,
+			data: {
+				status: 'publish',
+			},
+		} );
+		return navigationMenus;
 	}
 
 	/**
