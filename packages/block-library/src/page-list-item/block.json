@@ -23,9 +23,6 @@
 		},
 		"hasChildren": {
 			"type": "boolean"
-		},
-		"onSelect": {
-			"type": "function"
 		}
 	},
 	"usesContext": [

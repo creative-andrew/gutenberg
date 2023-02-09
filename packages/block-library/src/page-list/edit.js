@@ -202,10 +202,6 @@ export default function PageListEdit( {
 				title: page.title?.rendered,
 				link: page.url,
 				hasChildren,
-				onSelect: () => {
-					openModal();
-					return false;
-				},
 			};
 			let item = null;
 			const children = getBlockList( page.id );
